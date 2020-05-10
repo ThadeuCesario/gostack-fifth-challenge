@@ -4,7 +4,19 @@ import TransactionsRepository from '../repositories/TransactionsRepository';
 import Transaction from '../models/Transaction';
 
 class DeleteTransactionService {
-  public async execute(): Promise<void> {}
+  public async execute(id: string): Promise<void> {
+    const transactionsRepository = getCustomRepository(TransactionsRepository);
+
+    const transaction = await transactionsRepository.findOne({
+      where: id,
+    });
+
+    if (!transaction) {
+      throw new AppError('Transaction id does not exist.');
+    }
+
+    await transactionsRepository.remove(transaction);
+  }
 }
 
 export default DeleteTransactionService;
