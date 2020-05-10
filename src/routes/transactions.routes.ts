@@ -1,26 +1,53 @@
 import { Router } from 'express';
 
-// import TransactionsRepository from '../repositories/TransactionsRepository';
-// import CreateTransactionService from '../services/CreateTransactionService';
-// import DeleteTransactionService from '../services/DeleteTransactionService';
+import { getCustomRepository } from 'typeorm';
+
+import TransactionsRepository from '../repositories/TransactionsRepository';
+import CreateTransactionService from '../services/CreateTransactionService';
+import DeleteTransactionService from '../services/DeleteTransactionService';
 // import ImportTransactionsService from '../services/ImportTransactionsService';
 
 const transactionsRouter = Router();
 
 transactionsRouter.get('/', async (request, response) => {
-  // TODO
+  /**
+   * Para montarmos nossa rota 'get', precisamos primeiramente pegar o repositorio
+   * das transações. Feito isso vamos fazer um find() não passando nenhum parametro
+   * para que assim, todos possam ser executados.
+   * Por fim, basta retornarmos no formato JSON essa informação.
+   */
+  const transactionsRepository = getCustomRepository(TransactionsRepository);
+  const transactions = await transactionsRepository.find();
+  const balance = await transactionsRepository.getBalance();
+
+  return response.status(200).json({ transactions, balance });
 });
 
 transactionsRouter.post('/', async (request, response) => {
   const { title, value, type, category } = request.body;
 
-  console.log(title, value, type, category);
+  const createTransaction = new CreateTransactionService();
 
-  return response.json({ ok: true });
+  const transaction = await createTransaction.execute({
+    title,
+    value,
+    type,
+    category,
+  });
+
+  return response.json(transaction);
 });
 
 transactionsRouter.delete('/:id', async (request, response) => {
-  // TODO
+  const { id } = request.params; // Parametro de rota.
+
+  const deleteTransaction = new DeleteTransactionService();
+
+  const transaction = await deleteTransaction.execute({
+    id,
+  });
+
+  return response.status(204).send();
 });
 
 transactionsRouter.post('/import', async (request, response) => {
